@@ -1,0 +1,60 @@
+configuration:
+  languages:
+    name: Languages
+    description: >-
+      Comma-separated BCP-47 language codes to recognise, e.g. "en" or
+      "en,ro". The first language is the primary one.
+  stt_backend:
+    name: Speech-to-text backend
+    description: >-
+      "local" runs Whisper on this machine (no internet). Any other value is a
+      cloud provider and requires the matching API key below.
+  stt_model:
+    name: Local Whisper model
+    description: >-
+      Used when the speech-to-text backend is "local". "small" is fast and
+      accurate enough for most voice commands; "large-v3-turbo" is the most
+      accurate. Other options: tiny, tiny.en, small.en.
+  tts_backend:
+    name: Text-to-speech backend
+    description: >-
+      "local" uses offline Piper voices. Choose a cloud provider (and fill its
+      API key) for cloud voices, or "none" to disable text-to-speech.
+  tts_local_voice:
+    name: Local Piper voice
+    description: >-
+      Optional Piper voice name when the text-to-speech backend is "local",
+      e.g. "en_US-amy-medium". Leave empty to use the default for your
+      language.
+  mdns_name:
+    name: Service name
+    description: The instance name advertised on the network. Defaults to "Fono".
+  wyoming_port:
+    name: Wyoming port
+    description: TCP port for the Wyoming protocol endpoint. Defaults to 10300.
+  groq_api_key:
+    name: Groq API key
+    description: Required only when a Groq backend is selected.
+  openai_api_key:
+    name: OpenAI API key
+    description: Required only when an OpenAI backend is selected.
+  deepgram_api_key:
+    name: Deepgram API key
+    description: Required only when a Deepgram backend is selected.
+  gemini_api_key:
+    name: Gemini API key
+    description: Required only when a Gemini backend is selected.
+  elevenlabs_api_key:
+    name: ElevenLabs API key
+    description: Required only when an ElevenLabs backend is selected.
+  cartesia_api_key:
+    name: Cartesia API key
+    description: Required only when a Cartesia backend is selected.
+  speechmatics_api_key:
+    name: Speechmatics API key
+    description: Required only when a Speechmatics backend is selected.
+  openrouter_api_key:
+    name: OpenRouter API key
+    description: Required only when an OpenRouter backend is selected.
+network:
+  10300/tcp: Wyoming protocol (speech-to-text and text-to-speech)

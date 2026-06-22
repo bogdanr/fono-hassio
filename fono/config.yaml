@@ -1,0 +1,62 @@
+# Home Assistant add-on metadata for Fono.
+# `version` tracks the upstream Fono release this add-on wraps; the
+# version-bump workflow keeps it (and build.yaml's image tag) in lockstep
+# with new Fono releases.
+name: Fono
+version: "0.11.0"
+slug: fono
+description: >-
+  Local-first speech-to-text and text-to-speech over the Wyoming protocol,
+  with optional Vulkan GPU acceleration.
+url: https://github.com/bogdanr/fono-hassio/tree/main/fono
+# Only the two arches the upstream Vulkan image actually ships. There is no
+# 32-bit (armv7/armhf/i386) build.
+arch:
+  - aarch64
+  - amd64
+# Start before Home Assistant so the Wyoming endpoint is up when the
+# integration loads.
+startup: services
+boot: auto
+# Graduate to `stable` after field testing on real HA OS hardware.
+stage: experimental
+# Wyoming protocol endpoint (speech-to-text and text-to-speech).
+ports:
+  "10300/tcp": 10300
+ports_description:
+  "10300/tcp": Wyoming protocol (speech-to-text and text-to-speech)
+# Models, cache and generated config persist in the add-on's /data volume —
+# exactly the path the Fono entrypoint already uses (HOME=/data). HA includes
+# /data in add-on backups.
+options:
+  languages: en
+  stt_backend: local
+  stt_model: small
+  tts_backend: local
+  tts_local_voice: ""
+  mdns_name: Fono
+  wyoming_port: 10300
+  groq_api_key: ""
+  openai_api_key: ""
+  deepgram_api_key: ""
+  gemini_api_key: ""
+  elevenlabs_api_key: ""
+  cartesia_api_key: ""
+  speechmatics_api_key: ""
+  openrouter_api_key: ""
+schema:
+  languages: str
+  stt_backend: list(local|groq|openai|deepgram|gemini|elevenlabs|cartesia|speechmatics|openrouter)
+  stt_model: str
+  tts_backend: list(local|openai|gemini|elevenlabs|cartesia|deepgram|groq|openrouter|speechmatics|none)
+  tts_local_voice: str?
+  mdns_name: str
+  wyoming_port: port
+  groq_api_key: password?
+  openai_api_key: password?
+  deepgram_api_key: password?
+  gemini_api_key: password?
+  elevenlabs_api_key: password?
+  cartesia_api_key: password?
+  speechmatics_api_key: password?
+  openrouter_api_key: password?

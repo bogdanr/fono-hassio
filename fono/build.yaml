@@ -1,0 +1,13 @@
+# Build the add-on image as a thin layer on top of the prebuilt, multi-arch
+# Fono server image. We do NOT recompile Fono; we only add the options shim.
+#
+# `:latest` is used while bootstrapping because the first tagged Fono release
+# predates the container publish workflow. The version-bump workflow pins this
+# to the matching `ghcr.io/bogdanr/fono:<version>` tag on each Fono release.
+build_from:
+  aarch64: ghcr.io/bogdanr/fono:latest
+  amd64: ghcr.io/bogdanr/fono:latest
+labels:
+  org.opencontainers.image.title: "Fono (Home Assistant add-on)"
+  org.opencontainers.image.source: "https://github.com/bogdanr/fono-hassio"
+  org.opencontainers.image.licenses: "GPL-3.0-only"
