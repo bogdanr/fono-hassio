@@ -41,7 +41,8 @@ jobs:
         run: |
           v="${{ steps.ver.outputs.version }}"
           sed -i -E "s/^version: \".*\"/version: \"$v\"/" fono/config.yaml
-          sed -i -E "s#(ghcr.io/bogdanr/fono):[^\"[:space:]]+#\1:$v#g" fono/build.yaml
+          # GHCR image tags are v-prefixed (v0.14.0); the add-on version is not.
+          sed -i -E "s#(ghcr.io/bogdanr/fono):[^\"[:space:]]+#\1:v$v#g" fono/build.yaml
           if ! grep -q "^## $v" fono/CHANGELOG.md; then
             tmp="$(mktemp)"
             {

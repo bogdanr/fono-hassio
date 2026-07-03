@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0
+
+- Track Fono 0.14.0 and pin the base image to the release tag
+  (`ghcr.io/bogdanr/fono:v0.14.0`) instead of `:latest`.
+- Add the add-on icon and logo.
+
 ## 0.11.0
 
 - Initial release. Home Assistant add-on wrapping the Fono Wyoming server
