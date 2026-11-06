@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.20.0
 
 - Two options: a cloud API key and the languages. Fono recognises the provider and uses
   it for speech, voice and the conversation agent. Everything else moved to
