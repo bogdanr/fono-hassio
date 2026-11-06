@@ -1,73 +1,58 @@
 # Fono
 
-Local-first **speech-to-text and text-to-speech** for Home Assistant, served
-over the [Wyoming protocol](https://www.home-assistant.io/integrations/wyoming/).
-Fono runs entirely on your machine by default — audio and transcripts never
-leave the box unless you opt into a cloud backend.
+One app for every part of a Home Assistant voice assistant:
 
-This add-on wraps the prebuilt, multi-arch Fono server image
-(`ghcr.io/bogdanr/fono`); it does not recompile anything.
+- **Speech-to-text**, local (Whisper) or cloud (Groq, OpenAI, Deepgram, Gemini, ElevenLabs and more)
+- **Text-to-speech**, local (Supertonic, 48 voices) or cloud
+- **Wake word**, detected on the server
+- **Conversation agent**, answered by the cloud model of your choice, that
+  can control your devices
 
-## Installation
+It replaces Whisper, Piper and openWakeWord, and can stand in for the
+conversation agent too. Use all of it or only the parts you want.
 
-1. Install and **Start** the add-on.
-2. On first start it downloads the chosen Whisper model and a Piper voice into
-   the add-on's persistent storage. This can take a few minutes and a few
-   hundred MB — it only happens once.
-3. Add the **Wyoming Protocol** integration
-   (**Settings → Devices & Services → Add Integration → Wyoming Protocol**),
-   pointing at this host on port `10300`.
-4. In **Settings → Voice assistants**, select **Fono** for **Speech-to-text**
-   and/or **Text-to-speech** in your Assist pipeline.
+## Setup
 
-## What you get by default
+1. **Start** the app.
+2. Under **Settings → Devices & services**, click **Add** on the
+   discovered **Fono** card.
+3. Under **Settings → Voice assistants**, pick Fono for the parts you want.
 
-| Service | Default |
-| --- | --- |
-| Speech-to-text | local Whisper `small` |
-| Text-to-speech | local Piper |
-| Languages | `en` |
-| Port | `10300` (Wyoming) |
+Everything runs locally by default. To use a cloud provider, paste its API
+key in the **Fono** panel in the sidebar, or under **Configuration**. Fono
+recognises the provider from the key.
 
-No API keys or internet access are required for the defaults.
+Fono takes its languages from Home Assistant on first start: the
+preferred voice assistant's language, Home Assistant's own, the other voice
+assistants', then English. To choose them yourself, fill in **Languages**
+under **Configuration**, for example `ro, en`.
 
-## Options
+## Home control
 
-| Option | Purpose |
-| --- | --- |
-| `languages` | Recognised languages, comma-separated (e.g. `en,ro`). |
-| `stt_backend` | `local`, or a cloud provider (needs its API key). |
-| `stt_model` | Local Whisper model: `small`, `large-v3-turbo`, `tiny`, … |
-| `tts_backend` | `local` Piper, a cloud provider, or `none` to disable TTS. |
-| `tts_local_voice` | Optional Piper voice, e.g. `en_US-amy-medium`. |
-| `mdns_name` | Service name advertised on the network. |
-| `wyoming_port` | Wyoming TCP port (default `10300`). |
-| `*_api_key` | Cloud provider keys; only needed for the matching backend. |
+The conversation agent controls the devices you expose to Assist
+(**Settings → Voice assistants → Expose**). On first start Fono sets up
+Home Assistant's **Model Context Protocol Server** integration for this,
+if it isn't set up already.
 
-Changing an option and restarting regenerates Fono's configuration
-automatically.
+With **Prefer handling commands locally** turned on in a voice assistant,
+Home Assistant handles simple commands such as "turn on the kitchen light"
+itself, and Fono answers everything else.
 
-## GPU acceleration
+## Other devices
 
-The image is Vulkan-capable but runs on the **CPU by default**, which works on
-every host. GPU acceleration needs the host render node (`/dev/dri`) mapped
-into the add-on, which is not enabled in this version because a missing device
-would stop the add-on from starting on GPU-less hosts. A dedicated GPU variant
-is planned — until then, GPU users can run the
-[container directly](https://github.com/bogdanr/fono/blob/main/docs/home-assistant.md)
-with `/dev/dri` mapped.
+Port 11434 serves an OpenAI- and Ollama-compatible API for chat,
+transcription and speech. Other devices need an API key, created in the
+**Fono** panel.
 
-NVIDIA acceleration is not available on Home Assistant OS (it lacks the NVIDIA
-Container Toolkit); use the container on a host you control for NVIDIA GPUs.
+## Settings
 
-## Storage and backups
+Open **Fono** in the sidebar for voices with previews, languages, models,
+the assistant, history and system health.
 
-Models, cache, and the generated configuration live in the add-on's `/data`
-volume and persist across restarts and updates. Home Assistant includes `/data`
-in add-on backups.
+## Requirements
 
-## Privacy
-
-With the default `local` backends, all speech processing stays on this
-machine. Cloud backends are strictly opt-in and only active when you select
-one and provide its API key.
+Local speech-to-text needs a CPU with AVX2: Intel from 2013 (Haswell) or
+AMD from 2015 on, and Intel N100 and newer. On CPUs without it, such as
+older Atom, Celeron and Pentium chips, Fono turns local speech-to-text off
+and tells you so; add a cloud key to use it there.
+Text-to-speech, the wake word and the conversation agent work on any CPU.

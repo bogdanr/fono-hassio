@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+- Two options: a cloud API key and the languages. Fono recognises the provider and uses
+  it for speech, voice and the conversation agent. Everything else moved to
+  the Fono panel in the sidebar.
+- Home Assistant discovers Fono, and Fono offers itself as a conversation
+  agent.
+- Home control: on first start the app sets up Home Assistant's Model
+  Context Protocol Server integration and connects the assistant to it.
+  (#1)
+- Port 11434 serves Fono's OpenAI- and Ollama-compatible API. Other devices
+  need a key created in the panel. (#2)
+- Fono takes its languages from Home Assistant on first start: the
+  preferred voice assistant's, Home Assistant's own, the other voice
+  assistants', then English. A **Languages** option sets them by hand. (#3)
+
 ## 0.14.0
 
 - Track Fono 0.14.0 and pin the base image to the release tag
