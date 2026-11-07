@@ -3,7 +3,7 @@
 # the image for it and only then bumps this line, so Home Assistant never
 # offers an update whose image isn't there yet.
 name: Fono
-version: "0.20.0"
+version: "0.20.1"
 slug: fono
 description: Speech-to-text, text-to-speech, wake word and a conversation agent in one app.
 url: https://github.com/bogdanr/fono-hassio/tree/main/fono

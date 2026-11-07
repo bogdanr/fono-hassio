@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.1
+
+- Runs Fono 0.20.1. See its [release notes](https://github.com/bogdanr/fono/releases/tag/v0.20.1).
+
 ## 0.20.0
 
 - Two options: a cloud API key and the languages. Fono recognises the provider and uses
