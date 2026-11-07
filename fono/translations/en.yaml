@@ -1,17 +1,19 @@
 configuration:
   api_key:
-    name: Cloud API key (optional)
+    name: Add a cloud API key
     description: >-
-      Paste a key from Groq, Cerebras, OpenAI, Gemini, OpenRouter or another
-      provider Fono supports. Fono recognises the provider and uses it for
-      speech, voice and the conversation agent. Leave it empty to stay fully
-      local. Everything else is in the Fono panel in the sidebar.
+      Optional. Paste a key from Groq, Gemini, OpenAI, OpenRouter or another
+      supported provider and Fono uses it for listening, speaking and
+      answering. This field only adds keys: the ones you already added are
+      kept, even though they don't show up here. To see or change them, open
+      Fono in the sidebar. Leave it empty to keep everything on this machine.
   languages:
-    name: Languages (optional)
+    name: Languages
     description: >-
-      Languages Fono listens and speaks in, most used first, for example
-      "ro, en". Leave empty to take them from Home Assistant on first start:
-      its own language and each voice assistant's, with English added. A
-      change here replaces the languages set in the Fono panel.
+      Optional. Leave it empty and Fono uses your voice assistants'
+      languages, which it reads from Home Assistant on first start. To choose
+      them yourself, list them with the one you use most first, for example
+      "ro, en". You can also change them later in the Fono panel.
 network:
   10300/tcp: Wyoming, for Home Assistant and voice satellites
+  11434/tcp: OpenAI- and Ollama-compatible API (needs a key from the Fono panel)
