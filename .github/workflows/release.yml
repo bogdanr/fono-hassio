@@ -1,0 +1,139 @@
+name: Release
+
+# Builds the app image for the newest Fono release, pushes it, and only then
+# bumps the app version, so Home Assistant never offers an update whose image
+# isn't there yet.
+#
+# Runs hourly and checks for a new Fono release (no token from the Fono repo
+# needed), on demand, and on every push to main that changes the app (that
+# rebuilds the current version, which reaches new installs).
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Fono version, e.g. 0.20.0 (default: the latest release)"
+        required: false
+  repository_dispatch:
+    types: [fono-release]
+  push:
+    branches: [main]
+    paths:
+      - "fono/**"
+      - ".github/workflows/release.yml"
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Pick the version
+        id: ver
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          ASKED: ${{ github.event.inputs.version || github.event.client_payload.version }}
+        run: |
+          current=$(sed -n 's/^version: "\(.*\)"$/\1/p' fono/config.yaml)
+          if [ "$EVENT" = push ]; then
+            v=$current
+          elif [ -n "$ASKED" ]; then
+            v=${ASKED#v}
+          else
+            v=$(gh release view -R bogdanr/fono --json tagName -q .tagName)
+            v=${v#v}
+          fi
+          build=true
+          if [ "$EVENT" = schedule ] && [ "$v" = "$current" ] \
+            && docker manifest inspect "ghcr.io/bogdanr/amd64-fono-hassio:$v" >/dev/null 2>&1; then
+            build=false
+          fi
+          echo "Fono $v (app is at $current), build: $build"
+          {
+            echo "version=$v"
+            echo "current=$current"
+            echo "build=$build"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Fono's release binaries
+        if: steps.ver.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.ver.outputs.version }}
+        working-directory: fono
+        run: |
+          gh release download "v$V" -R bogdanr/fono \
+            -p "fono-v$V-x86_64" -p "fono-v$V-aarch64" -p SHA256SUMS
+          grep -E " fono-v$V-(x86_64|aarch64)$" SHA256SUMS | sha256sum -c -
+          mv "fono-v$V-x86_64" fono-amd64
+          mv "fono-v$V-aarch64" fono-arm64
+          curl -fsSL -o entrypoint.sh \
+            "https://raw.githubusercontent.com/bogdanr/fono/v$V/packaging/container/entrypoint.sh"
+          chmod 0755 fono-amd64 fono-arm64 entrypoint.sh run.sh
+
+      - uses: docker/setup-qemu-action@v3
+        if: steps.ver.outputs.build == 'true'
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.ver.outputs.build == 'true'
+
+      - name: Build and push the images
+        if: steps.ver.outputs.build == 'true'
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          # Home Assistant's architecture name, then Docker's.
+          for pair in amd64:amd64 aarch64:arm64; do
+            arch=${pair%%:*}
+            docker buildx build fono \
+              --platform "linux/${pair##*:}" \
+              --provenance=false \
+              --label "io.hass.version=$V" \
+              --label io.hass.type=addon \
+              --label "io.hass.arch=$arch" \
+              --label "org.opencontainers.image.title=Fono for Home Assistant" \
+              --label org.opencontainers.image.source=https://github.com/bogdanr/fono-hassio \
+              --label org.opencontainers.image.licenses=GPL-3.0-only \
+              --tag "ghcr.io/bogdanr/$arch-fono-hassio:$V" \
+              --push
+          done
+
+      - name: Offer the update to Home Assistant
+        if: steps.ver.outputs.build == 'true' && steps.ver.outputs.version != steps.ver.outputs.current
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          sed -i -E "s/^version: \".*\"$/version: \"$V\"/" fono/config.yaml
+          if ! grep -q "^## $V$" fono/CHANGELOG.md; then
+            {
+              echo "# Changelog"
+              echo
+              echo "## $V"
+              echo
+              echo "- Runs Fono $V. See its [release notes](https://github.com/bogdanr/fono/releases/tag/v$V)."
+              tail -n +2 fono/CHANGELOG.md
+            } > CHANGELOG.new
+            mv CHANGELOG.new fono/CHANGELOG.md
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add fono/config.yaml fono/CHANGELOG.md
+          git commit -s -m "Run Fono $V"
+          git push

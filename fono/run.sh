@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Start Fono inside Home Assistant. Fono's own settings, edited in its
 # sidebar panel, are the single source of truth: they are written once on
-# first start and never overwritten. The one app option, a cloud API key,
-# is applied only when it changes.
+# first start and never overwritten. The app options, a cloud API key and
+# the languages, are applied only when they change.
 set -eu
 
 export FONO_SERVICES=asr,tts,wake,handle
@@ -57,6 +57,17 @@ announce() {
         http://supervisor/discovery && echo "[fono] offered to Home Assistant as tcp://$(hostname):10300"
 }
 announce &
+
+# On first start, turn on auto-update, the sidebar entry and the watchdog.
+# Only once, so switching any of them off later sticks.
+if [ ! -f /data/.app_defaults ]; then
+    wget -q -O /dev/null --header "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        --header "Content-Type: application/json" \
+        --post-data '{"auto_update":true,"ingress_panel":true,"watchdog":true}' \
+        http://supervisor/addons/self/options \
+        && touch /data/.app_defaults \
+        && echo "[fono] turned on auto-update, the sidebar entry and the watchdog" &
+fi
 
 # The entrypoint writes Fono's first config, then runs this script's tail:
 # apply a changed API key, connect home control once, set the languages

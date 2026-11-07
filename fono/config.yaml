@@ -1,13 +1,15 @@
-# Home Assistant add-on metadata for Fono.
-# `version` tracks the upstream Fono release this add-on wraps; the
-# version-bump workflow keeps it (and build.yaml's image tag) in lockstep
-# with new Fono releases.
+# Home Assistant app metadata for Fono.
+# `version` is the Fono release the app runs. The release workflow builds
+# the image for it and only then bumps this line, so Home Assistant never
+# offers an update whose image isn't there yet.
 name: Fono
 version: "0.20.0"
 slug: fono
 description: Speech-to-text, text-to-speech, wake word and a conversation agent in one app.
 url: https://github.com/bogdanr/fono-hassio/tree/main/fono
-# Only the two arches the upstream Vulkan image actually ships.
+# Prebuilt by the release workflow, so installing is a ~14 MB download.
+image: ghcr.io/bogdanr/{arch}-fono-hassio
+# The two architectures Fono releases Linux binaries for.
 arch:
   - aarch64
   - amd64
@@ -17,6 +19,8 @@ startup: services
 boot: auto
 init: false
 stage: experimental
+# Lets Home Assistant restart Fono if it stops answering.
+watchdog: tcp://[HOST]:[PORT:10300]
 # Offer Fono to Home Assistant's Wyoming integration as a discovered device.
 discovery:
   - wyoming
